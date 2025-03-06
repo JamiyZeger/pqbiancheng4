@@ -1,0 +1,23 @@
+# 环境变量文件
+.env
+
+# 本地数据存储
+data/
+
+# Python编译缓存
+__pycache__/
+*.py[cod]
+
+# Excel数据文件
+*.xlsx
+
+# 日志文件
+*.log
+
+# IDE相关配置
+.vscode/
+.idea/
+
+# Docker构建缓存
+**/__pycache__/
+**/*.pyc
