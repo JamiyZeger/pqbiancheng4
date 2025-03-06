@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pq-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pq
+  template:
+    metadata:
+      labels:
+        app: pq
+    spec:
+      containers:
+      - name: app
+        image: ghcr.io/jamiyzeger/pqbiancheng4:latest
+        ports:
+        - containerPort: 5002
+        envFrom:
+        - secretRef:
+            name: pq-secrets
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5002
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: data-storage
+          mountPath: /app/data
+      volumes:
+      - name: data-storage
+        persistentVolumeClaim:
+          claimName: pq-pvc
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pq-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pq-service
+spec:
+  type: NodePort
+  ports:
+  - port: 5002
+    targetPort: 5002
+    nodePort: 30002
+  selector:
+    app: pq

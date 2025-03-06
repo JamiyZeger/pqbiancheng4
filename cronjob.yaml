@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: log-sender
+spec:
+  schedule: "0 20 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: log-sender
+            image: ghcr.io/jamiyzeger/pqbiancheng4:latest
+            command: ["curl", "http://pq-service:5002/send-logs"]
+            envFrom:
+            - secretRef:
+                name: pq-secrets
+            volumeMounts:
+            - name: data-storage
+              mountPath: /app/data
+          volumes:
+          - name: data-storage
+            persistentVolumeClaim:
+              claimName: pq-pvc
+          restartPolicy: OnFailure
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pq-secrets
+type: Opaque
+data:
+  MAIL_SERVER: $(echo -n 'smtp.qiye.aliyun.com' | base64)
+  MAIL_USERNAME: $(echo -n 'AlexPeng@careerintlinc.com' | base64)
+  MAIL_PASSWORD: $(echo -n 'N651LvEanhgDUpXP' | base64)
+  ADMIN_EMAIL: $(echo -n 'pq2008317@163.com' | base64)
+  TEST_RECEIVER_EMAIL: $(echo -n 'alex533@vip.163.com' | base64)
